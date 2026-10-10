@@ -1,0 +1,15 @@
+name:Build vpk
+on:
+\push,pull\_request\
+jobs
+  build:
+   runs-on:ubuntu-latest
+   container: vitasdk/vita-toolchain
+     -uses: actions/checkout@v2\
+       -name: Build
+         run: l
+                   mkdir build
+                   cd build
+                   cmake ..
+                   make
+           
