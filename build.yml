@@ -1,0 +1,49 @@
+name: Build VPK
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  VITASDK: /usr/local/vitasdk
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar VitaSDK
+        run: |
+          sudo mkdir -p $VITASDK
+          sudo chown $USER $VITASDK
+          git clone https://github.com/vitasdk/vdpm
+          cd vdpm
+          ./bootstrap-vitasdk.sh
+          export PATH=$VITASDK/bin:$PATH
+          ./install-all.sh
+          echo "$VITASDK/bin" >> $GITHUB_PATH
+
+      - name: Compilar e instalar math-neon
+        run: |
+          git clone --depth 1 https://github.com/Rinnegatamante/math-neon
+          cd math-neon
+          make -j$(nproc) install
+
+      - name: Compilar e instalar vitaGL
+        run: |
+          git clone --depth 1 https://github.com/Rinnegatamante/vitaGL
+          cd vitaGL
+          make -j$(nproc) NO_DEBUG=1 install
+
+      - name: Compilar el VPK
+        run: |
+          cmake -S . -B build
+          cmake --build build
+
+      - name: Subir el VPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCity-vpk
+          path: build/*.vpk
