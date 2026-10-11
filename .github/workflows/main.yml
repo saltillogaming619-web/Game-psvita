@@ -1,0 +1,39 @@
+name: Compilar VPK
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar VitaSDK
+        run: |
+          sudo mkdir -p /usr/local/vitasdk
+          sudo chown $USER /usr/local/vitasdk
+          echo "VITASDK=/usr/local/vitasdk" >> $GITHUB_ENV
+          echo "/usr/local/vitasdk/bin" >> $GITHUB_PATH
+          export VITASDK=/usr/local/vitasdk
+          export PATH=$VITASDK/bin:$PATH
+          git clone https://github.com/vitasdk/vdpm
+          cd vdpm
+          ./bootstrap-vdpm.sh
+          ./install-all.sh
+
+      - name: Compilar
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make -j2
+
+      - name: Subir VPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CiudadVita-vpk
+          path: build/CiudadVita.vpk
+          
+          
